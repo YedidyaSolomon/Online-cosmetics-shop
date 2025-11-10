@@ -1,7 +1,7 @@
 import Product from '../../models/products.js';
 export const addNewProduct = async (req, res) => {
-    const { product_name, price, quantity, description } = req.body;
-    if (!product_name || !price || !quantity || !description) {
+    const { product_id, product_name, price, quantity, description } = req.body;
+    if (!product_id, !product_name || !price || !quantity || !description) {
         return res.status(400).json({ message: 'All fields are required' });
     }
      const quantityInDb = await Product.findOne({ where: { product_name: product_name} });

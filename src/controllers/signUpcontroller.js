@@ -40,7 +40,7 @@ const signUp = async (req, res) => {
             phone_number
          })
 
-         console.log("customer created successfuly: ", customer);
+         
 
          res.status(201).json({message: "customer created successfully",
 

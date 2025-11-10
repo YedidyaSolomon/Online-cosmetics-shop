@@ -39,6 +39,7 @@ export const calculateCartTotal = async (cart_id) => {
 export const checkOut = async (req, res) => {
   const customer = req.customer;
   const customers = await Customer.findOne({where:{customer_id:  customer.customer_id}})
+  
   const cart = await Cart.findOne({ where: { customer_id: customer.customer_id, status: 'active' } });
   if (!cart) return res.status(404).json({ message: "No active cart found" });
 
@@ -57,7 +58,6 @@ export const checkOut = async (req, res) => {
       if (item.quantity > stock) throw new Error(`Not enough stock for ${item.Product.product_name}`);
     }
 
- 
     const totalPrice = await calculateCartTotal(cart.cart_id);
      
     // Initiate payment request (outside DB transaction — API call can be async)
@@ -126,7 +126,10 @@ export const checkOut = async (req, res) => {
     console.log(paymentResponse.data)
     res.status(200).json({
       message: "Payment initialized successfully from e-commerce",
-      data: paymentResponse.data
+      data: {
+        payment_url: `http://localhost:3000/api/pay/${paymentResponse.data.tx_ref}`,
+        tx_ref: paymentResponse.data.tx_ref
+      }
     });
 
   } catch (error) {

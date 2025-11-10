@@ -15,11 +15,13 @@ import transactionHistoryRoute from './routes/transactionHistoryRoute.js'
 import refreshRouter from './routes/refreshTokenRoute.js'
 import { customerAuth } from "./auth/customerAuth.js";
 import updatecartItemRouter from './routes/updateItemnInCart.js'
+import redirectRout from './routes/redirectCustomerRoute.js'
 
 const app= express()
 const PORT = 3000
 
 app.use(express.json());
+app.use('/api', redirectRout)
 app.use('/api/cartItems', updatecartItemRouter)
 app.use('/api/refresh', adminAuth, refreshRouter)
 app.use('/api/transaction', adminAuth, transactionHistoryRoute)
