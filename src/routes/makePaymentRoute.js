@@ -4,6 +4,6 @@ import {checkOut} from '../controllers/makePaymentController.js'
 
 const checkOutRouter = express.Router();
 
-checkOutRouter.post('/pay', customerAuth, checkOut )
+checkOutRouter.post('/pay', checkOut )
 
 export default checkOutRouter;

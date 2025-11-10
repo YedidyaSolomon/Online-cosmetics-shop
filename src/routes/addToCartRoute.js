@@ -5,5 +5,5 @@ import express from 'express';
 
 
 const addtocartRouter = express.Router();
-addtocartRouter.post('/addtocart', customerAuth, addItemsInCart);
+addtocartRouter.post('/addtocart', addItemsInCart);
 export default addtocartRouter;

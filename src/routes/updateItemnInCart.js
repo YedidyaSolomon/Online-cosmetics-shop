@@ -3,6 +3,6 @@ import { customerAuth } from '../auth/customerAuth.js'
 import express from 'express'
 
 const updatecartItemRouter = express.Router()
-updatecartItemRouter.put('/update', customerAuth, updateCartItems)
+updatecartItemRouter.put('/update', updateCartItems)
 
 export default updatecartItemRouter;

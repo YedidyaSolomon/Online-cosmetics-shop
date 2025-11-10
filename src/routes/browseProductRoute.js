@@ -4,7 +4,7 @@ import express from 'express';
 
 const browseProductRouter = express.Router();
 browseProductRouter.get('/browse', browseProducts);
-browseProductRouter.get('/browse/:product_name', customerAuth, browseProductbyName);
+browseProductRouter.get('/browse/:product_name', browseProductbyName);
     
 
 export default browseProductRouter;
