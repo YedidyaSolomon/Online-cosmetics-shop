@@ -7,16 +7,24 @@ export const updateCartItems = async (req, res) => {
   try {
     const customer = req.customer
     const { items } = req.body
+    const guestId = req.guestId;
+    let cart;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'No items provided' })
     }
 
-    // Find customer's active cart
-    const cart = await Cart.findOne({
+    if(req.customerType === 'registered' && customer?.customer_id){
+      cart = await Cart.findOne({
       where: { customer_id: customer.customer_id, status: 'active' }
     })
-
+    }
+   
+    if(req.guestId === 'guest' && guestId){
+      cart = await Cart.findOne({
+        where:{guest_id: guestId.guest_id}
+      })
+    }
     if (!cart) {
       return res.status(404).json({ message: 'Active cart not found' })
     }

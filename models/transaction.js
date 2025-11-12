@@ -5,6 +5,8 @@ const Transaction = sequelize.define(
   'Transaction',
   {
     transaction_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    customer_id: { type: DataTypes.INTEGER, allowNull: true },
+    guest_id:  {type:DataTypes.STRING, allowNull:true, },
     first_name: { type: DataTypes.STRING, allowNull: false },
     last_name: { type: DataTypes.STRING, allowNull: false },
     phone_number: { type: DataTypes.STRING },

@@ -38,92 +38,143 @@ export const calculateCartTotal = async (cart_id) => {
 
 export const checkOut = async (req, res) => {
   const customer = req.customer;
-  const customers = await Customer.findOne({where:{customer_id:  customer.customer_id}})
-  
-  const cart = await Cart.findOne({ where: { customer_id: customer.customer_id, status: 'active' } });
-  if (!cart) return res.status(404).json({ message: "No active cart found" });
+   const guestId = req.guestId;
+  let cart, cartItems, totalPrice, paymentResponse;
 
-  const cartItems = await CartItem.findAll({
-    where: { cart_id: cart.cart_id },
-    include: [{ model: Product, attributes: ['product_name', 'quantity', 'product_id'] }],
-  });
-  if (!cartItems.length) return res.status(400).json({ message: "Cart is empty" });
+  const t = await sequelize.transaction();
 
-  const t = await sequelize.transaction(); // start transaction
- 
   try {
-    
-    for (const item of cartItems) {
-      const stock = await getAvailableProductQuantity(item.product_id);
-      if (item.quantity > stock) throw new Error(`Not enough stock for ${item.Product.product_name}`);
-    }
+    //  Guest checkout
+    if (req.customerType === 'guest' && guestId) {
+      const { currency, email, first_name, last_name, phone_number } = req.body;
 
-    const totalPrice = await calculateCartTotal(cart.cart_id);
-     
-    // Initiate payment request (outside DB transaction — API call can be async)
-    
-    
-    const payload = {
-      amount: totalPrice,
-      currency: 'ETB',
-      email: customer.email,
-      first_name: cart.first_name,
-      last_name: cart.last_name,
-      phone_number: customers.phone_number,
-      callback_url: '',
-      return_url: ''
-    };
-
-     const paymentResponse = await axios.post(
-      
-      'https://playground.tamcon.et:2727/api/payments/initiatePayment',
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TOKEN}`,
-          'x-api-key': process.env.API_KEY,
-          'Content-Type': 'application/json'
-        }
+      if (!currency || !email || !first_name || !last_name || !phone_number) {
+        return res.status(400).json({ error: "All fields are required" });
       }
-    );
+     
 
-    
-    if (!paymentResponse.data.checkout_url || !paymentResponse.data.tx_ref) {
-      throw new Error("Payment initiation failed");
+
+      // find guest cart
+      cart = await Cart.findOne({ where: { guest_id: guestId, status: 'active' } });
+      if (!cart) return res.status(404).json({ message: "No active guest cart found" });
+
+      cartItems = await CartItem.findAll({
+        where: { cart_id: cart.cart_id },
+        include: [{ model: Product, attributes: ['product_name', 'quantity', 'product_id'] }],
+      });
+
+      if (!cartItems.length) return res.status(400).json({ message: "Cart is empty" });
+
+      // stock check
+      for (const item of cartItems) {
+        const stock = await getAvailableProductQuantity(item.product_id);
+        if (item.quantity > stock) throw new Error(`Not enough stock for ${item.Product.product_name}`);
+      }
+
+      totalPrice = await calculateCartTotal(cart.cart_id);
+
+      const guestPayload = {
+        amount: totalPrice,
+        currency: currency || 'ETB',
+        email,
+        first_name,
+        last_name,
+        phone_number,
+        callback_url: '',
+        return_url: ''
+      };
+
+      paymentResponse = await axios.post(
+        'https://playground.tamcon.et:2727/api/payments/initiatePayment',
+        guestPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.TOKEN}`,
+            'x-api-key': process.env.API_KEY,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!paymentResponse.data.checkout_url || !paymentResponse.data.tx_ref) {
+        throw new Error("Payment initiation failed");
+      }
     }
 
-    //create Order and OrderItems inside transaction
-    console.log("Creating order for customer:", customer.customer_id);
+    //Registered customer checkout
+    else if (req.customerType === 'registered' && customer?.customer_id) {
+      const customers = await Customer.findOne({ where: { customer_id: customer.customer_id } });
+      cart = await Cart.findOne({ where: { customer_id: customer.customer_id, status: 'active' } });
+      if (!cart) return res.status(404).json({ message: "No active cart found" });
+
+      cartItems = await CartItem.findAll({
+        where: { cart_id: cart.cart_id },
+        include: [{ model: Product, attributes: ['product_name', 'quantity', 'product_id'] }],
+      });
+
+      if (!cartItems.length) return res.status(400).json({ message: "Cart is empty" });
+
+      for (const item of cartItems) {
+        const stock = await getAvailableProductQuantity(item.product_id);
+        if (item.quantity > stock) throw new Error(`Not enough stock for ${item.Product.product_name}`);
+      }
+
+      totalPrice = await calculateCartTotal(cart.cart_id);
+
+      const payload = {
+        amount: totalPrice,
+        currency: 'ETB',
+        email: customers.email,
+        first_name: customers.first_name,
+        last_name: customers.last_name,
+        phone_number: customers.phone_number,
+        callback_url: '',
+        return_url: ''
+      };
+
+      paymentResponse = await axios.post(
+        'https://playground.tamcon.et:2727/api/payments/initiatePayment',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.TOKEN}`,
+            'x-api-key': process.env.API_KEY,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!paymentResponse.data.checkout_url || !paymentResponse.data.tx_ref) {
+        throw new Error("Payment initiation failed");
+      }
+    }
+
+    else {
+      return res.status(400).json({ message: "No valid customer or guest context" });
+    }
+
     const order = await Order.create({
-      customer_id: customer.customer_id,
+      customer_id: req.customerType === 'registered' ? customer.customer_id : null,
+      guest_id: req.customerType === 'guest' ? guestId : null,
       status: 'pending',
       total_amount: totalPrice,
       tx_ref: paymentResponse.data.tx_ref,
       checkout_url: paymentResponse.data.checkout_url
     }, { transaction: t });
-    console.log("Order created with ID:", order.order_id);
 
     for (const item of cartItems) {
-      console.log("Creating order item for product:", item.product_id, "Quantity:", item.quantity);
       await OrderItem.create({
         order_id: order.order_id,
         product_id: item.product_id,
         quantity: item.quantity,
         price: item.price
       }, { transaction: t });
-    }
-    console.log("Order items created");
 
-    //Reserve stock and decrement product quantities
-    for (const item of cartItems) {
-      console.log("Reserving stock for product:", item.product_id, "Quantity:", item.quantity);
       await reserveStock(item.product_id, item.quantity, order.order_id, t);
     }
-    console.log("Stock reservation completed for order:", order.order_id);
 
     await t.commit();
-    console.log("Transaction committed successfully");
-    console.log(paymentResponse.data)
+
     res.status(200).json({
       message: "Payment initialized successfully from e-commerce",
       data: {
@@ -133,15 +184,10 @@ export const checkOut = async (req, res) => {
     });
 
   } catch (error) {
-    // Rollback transaction if anything failed
     await t.rollback();
     res.status(500).json({
       message: "Error processing checkout",
-      error: error.message || error.response?.data || error
-
+      error: error.message || error
     });
   }
 };
-
-  
-

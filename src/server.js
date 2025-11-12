@@ -13,7 +13,7 @@ import webhookRoute from "./routes/recievWeebhookRoute.js";
 import checkOutRouter from "./routes/makePaymentRoute.js"
 import transactionHistoryRoute from './routes/transactionHistoryRoute.js'
 import refreshRouter from './routes/refreshTokenRoute.js'
-import { customerAuth } from "./auth/customerAuth.js";
+import { customerandGuestAuth } from "./auth/customerAuth.js";
 import updatecartItemRouter from './routes/updateItemnInCart.js'
 import redirectRout from './routes/redirectCustomerRoute.js'
 

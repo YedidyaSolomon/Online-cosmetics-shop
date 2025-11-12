@@ -1,7 +1,13 @@
-import Product from '../../models/products.js';7
+import Product from '../../models/products.js';
+import { Op } from 'sequelize';
 
 export const browseProducts = async (req, res) => {
-    const products = await Product.findAll();
+    const { product_name } = req.query;
+    let whereClause = {};
+    if (product_name) {
+        whereClause.product_name = { [Op.like]: `%${product_name}%` };
+    }
+    const products = await Product.findAll({ where: whereClause });
     res.status(200).json({ products });
 }
 
@@ -20,5 +26,5 @@ export const browseProductbyName = async (req, res) => {
     }       
 
 
-    res.status(200).json({ message:"productes: ", product });
+    res.status(200).json({ message: "products: ", product });
 }

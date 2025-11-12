@@ -15,7 +15,10 @@ export const transactionHistory = async (req, res) => {
         }
         else if(path === '/pending'){
              url = 'https://playground.tamcon.et:2727/api/transactions/pending'
-        }else{
+        }else if(path === '/all'){
+            url = 'https://playground.tamcon.et:2727/api/transactions/all'
+        }
+        else{
             return res.status(404).json({error: 'invalid path'})
         }
         

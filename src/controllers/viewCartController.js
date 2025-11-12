@@ -5,13 +5,30 @@ import Product from '../../models/products.js';
 export const viewCart = async (req, res) => {
   try {
     const customer = req.customer;
+    const guestId = req.guestId;
+    let cart;
 
-    const cart = await Cart.findOne({
-      where: { customer_id: customer.customer_id, status: 'active' },
-      order: [['cart_id', 'DESC']],
-      attributes: ['cart_id', 'first_name', 'last_name', 'customer_id', 'status']
+    if(req.customerType=== 'registered' && customer?.customer_id){
+
+      
+         cart = await Cart.findOne({
+         where: { customer_id: customer.customer_id, status: 'active' },
+         order: [['cart_id', 'DESC']],
+         attributes: ['cart_id', 'first_name', 'last_name', 'customer_id', 'status']
     });
 
+      }
+
+      if(req.customerType === 'guest' && guestId){
+        
+        cart = await Cart.findOne({
+          where:{guest_id: guestId, status:'active'},
+          order:[['cart_id', 'DESC']],
+          attributes:['cart_id', 'status']
+        })
+      }
+    
+   
     if (!cart) {
       return res.status(404).json({ message: 'No active cart found' });
     }
@@ -40,8 +57,8 @@ export const viewCart = async (req, res) => {
       message: 'Cart retrieved successfully',
       cart_id: cart.cart_id,
       customer_id: cart.customer_id,
-      first_name: cart.first_name,
-      last_name: cart.last_name,
+      first_name: cart.first_name || null,
+      last_name: cart.last_name || null,
       status: cart.status,
       items: cartItems.map(item => ({
         product_id: item.product_id,

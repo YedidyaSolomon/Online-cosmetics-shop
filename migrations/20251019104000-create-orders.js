@@ -4,10 +4,11 @@ export default {
       order_id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       customer_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: { model: 'customer', key: 'customer_id' },
         onDelete: 'CASCADE',
       },
+      guest_id:{type:Sequelize.STRING, allowNull:true, },
       total_amount: { type: Sequelize.DECIMAL(10,2), allowNull: false },
       status: { type: Sequelize.STRING, allowNull: false, defaultValue: 'pending' },
       tx_ref: { type: Sequelize.STRING, allowNull: false, unique: true },

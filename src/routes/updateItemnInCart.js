@@ -1,5 +1,5 @@
 import {updateCartItems} from '../controllers/updateItemsInCart.js'
-import { customerAuth } from '../auth/customerAuth.js'
+import { customerandGuestAuth } from '../auth/customerAuth.js'
 import express from 'express'
 
 const updatecartItemRouter = express.Router()

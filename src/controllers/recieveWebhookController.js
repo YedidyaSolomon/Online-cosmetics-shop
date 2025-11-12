@@ -3,11 +3,12 @@ import Product from '../../models/products.js';
 import Order from '../../models/order.js';
 import Transaction from '../../models/transaction.js';
 import { checkStockReservationExpiry, isReservationExpired } from '../utils/stockReservationExpiry.js';
+
 import { restoreStock } from '../utils/restoreStock.js';
 
 
 export const webhookResponse = async (req, res) => {
-
+    
    res.status(200).send('Webhook processed successfully');
   console.log('=== Incoming Webhook Request ===');
   //console.log('Headers:', req.headers);
@@ -45,6 +46,8 @@ export const webhookResponse = async (req, res) => {
       await order.update({ status: 'failed' });
 
       await Transaction.create({
+        customer_id:order.customer_id || null,
+        guest_id:order.guest_id|| null,
         order_id: order.order_id,
         tx_ref,
         status: 'failed',
@@ -68,6 +71,8 @@ export const webhookResponse = async (req, res) => {
 
 
       await Transaction.create({
+        customer_id:order.customer_id || null,
+        guest_id:order.guest_id|| null,
         order_id: order.order_id,
         tx_ref,
         status: expiryResult.expired ? 'failed' : 'success',

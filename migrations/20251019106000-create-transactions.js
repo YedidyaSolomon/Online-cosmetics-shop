@@ -4,6 +4,8 @@ export default {
       transaction_id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       first_name: { type: Sequelize.STRING, allowNull: false },
       last_name: { type: Sequelize.STRING, allowNull: false },
+      customer_id: { type: Sequelize.INTEGER, allowNull: true },
+      guest_id:{type:Sequelize.STRING, allowNull:true, },
       phone_number: { type: Sequelize.STRING },
       email: { type: Sequelize.STRING },
       currency: { type: Sequelize.STRING, allowNull: false },
