@@ -32,6 +32,7 @@ OrderItem.belongsTo(Order, { foreignKey: 'order_id' });
 // ===== Product ↔ OrderItem =====
 Product.hasMany(OrderItem, { foreignKey: 'product_id', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Product, { foreignKey: 'product_id' });
+Order.hasMany(OrderItem, { foreignKey: 'order_id' });
 
 // ===== Order ↔ Transaction =====
 Order.hasMany(Transaction, { foreignKey: 'order_id', onDelete: 'CASCADE' });

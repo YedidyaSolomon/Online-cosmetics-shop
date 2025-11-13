@@ -14,6 +14,7 @@ export default {
         references: { model: 'product', key: 'product_id' },
         onDelete: 'CASCADE',
       },
+       product_name: { type: Sequelize.STRING, allowNull: true },
       quantity: { type: Sequelize.INTEGER, allowNull: false, defaultValue: 1 },
       price: { type: Sequelize.DECIMAL(10,2), allowNull: false },
       created_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },

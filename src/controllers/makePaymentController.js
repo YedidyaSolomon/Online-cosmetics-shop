@@ -166,6 +166,7 @@ export const checkOut = async (req, res) => {
       await OrderItem.create({
         order_id: order.order_id,
         product_id: item.product_id,
+        product_name: item.Product.product_name,
         quantity: item.quantity,
         price: item.price
       }, { transaction: t });

@@ -16,11 +16,13 @@ import refreshRouter from './routes/refreshTokenRoute.js'
 import { customerandGuestAuth } from "./auth/customerAuth.js";
 import updatecartItemRouter from './routes/updateItemnInCart.js'
 import redirectRout from './routes/redirectCustomerRoute.js'
+import paymentHistoryRoute from './routes/paymentHistoryRoute.js'
 
 const app= express()
 const PORT = 3000
 
 app.use(express.json());
+app.use('/api/paymentHistory', paymentHistoryRoute)
 app.use('/api', redirectRout)
 app.use('/api/cartItems', updatecartItemRouter)
 app.use('/api/refresh', adminAuth, refreshRouter)
